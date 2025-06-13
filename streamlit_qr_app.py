@@ -72,12 +72,12 @@ def get_text_height(text, font):
     bbox = font.getbbox(text)
     return bbox[3] - bbox[1]
 
-def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix):
+def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix, font_file):
     width, height = 600, 800
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
 
-    title_font = ImageFont.truetype(font.path if hasattr(font, 'path') else font, 36)
+    title_font = ImageFont.truetype(font_file, 36)
 
     def draw_text(text, y, font_override=None, spacing=10):
         current_font = font_override if font_override else font
@@ -144,7 +144,6 @@ if generate_clicked:
     temp_files = []
     font_file = download_google_font(font_choice)
     font = ImageFont.truetype(font_file, 28)
-    font.path = getattr(font_file, 'name', '')
 
     st.success("✅ PDF generated successfully!")
     st.markdown(f"### Preview - {table_prefix} 1")
@@ -155,7 +154,7 @@ if generate_clicked:
         loyalty = generate_basic_qr(loyalty_url) if include_loyalty else None
         menu_url = f"https://tags.oolio.io/{uuid.uuid4()}"
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
-        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font, table_prefix)
+        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font, table_prefix, font_file)
 
         if table_number == 1:
             img_buf = BytesIO()
