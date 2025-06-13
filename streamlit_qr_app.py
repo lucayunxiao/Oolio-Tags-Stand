@@ -77,9 +77,10 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
     draw = ImageDraw.Draw(img)
 
     def draw_text(text, y):
-        w = draw.textbbox((0, 0), text, font=font)[2]
+        bbox = draw.textbbox((0, 0), text, font=font)
+        w = bbox[2] - bbox[0]
         draw.text(((width - w) // 2, y), text, font=font, fill="black")
-        return y + get_text_height(text, font) + 10
+        return y + (bbox[3] - bbox[1]) + 10
 
     y = 30
     y = draw_text(f"Table {table_number}", y)
@@ -90,17 +91,29 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
         spacing = 30
 
         if wifi_qr and loyalty_qr:
-            draw.text((120, y), "WiFi", font=font, fill="black")
-            draw.text((340, y), "Loyalty", font=font, fill="black")
-            y += 35
-            img.paste(wifi_qr, (100, y))
-            img.paste(loyalty_qr, (300, y))
+            total_width = qr_size * 2 + spacing
+            start_x = (width - total_width) // 2
+
+            wifi_label = "WiFi"
+            loyalty_label = "Loyalty"
+
+            wifi_label_w = draw.textbbox((0,0), wifi_label, font=font)[2] - draw.textbbox((0,0), wifi_label, font=font)[0]
+            loyalty_label_w = draw.textbbox((0,0), loyalty_label, font=font)[2] - draw.textbbox((0,0), loyalty_label, font=font)[0]
+
+            draw.text((start_x + qr_size//2 - wifi_label_w//2, y), wifi_label, font=font, fill="black")
+            draw.text((start_x + qr_size + spacing + qr_size//2 - loyalty_label_w//2, y), loyalty_label, font=font, fill="black")
+
+            y += get_text_height(wifi_label, font) + 5
+            img.paste(wifi_qr, (start_x, y))
+            img.paste(loyalty_qr, (start_x + qr_size + spacing, y))
             y += qr_size + spacing
+
         elif wifi_qr:
             draw.text(((width - 60) // 2, y), "WiFi", font=font, fill="black")
             y += 35
             img.paste(wifi_qr, ((width - qr_size) // 2, y))
             y += qr_size + spacing
+
         elif loyalty_qr:
             draw.text(((width - 100) // 2, y), "Loyalty", font=font, fill="black")
             y += 35
