@@ -77,17 +77,14 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
 
-    large_font = ImageFont.truetype(font.path, 36) if hasattr(font, 'path') else font
-
-    def draw_text(text, y, use_large=False):
-        use_font = large_font if use_large else font
-        bbox = draw.textbbox((0, 0), text, font=use_font)
+    def draw_text(text, y):
+        bbox = draw.textbbox((0, 0), text, font=font)
         w = bbox[2] - bbox[0]
-        draw.text(((width - w) // 2, y), text, font=use_font, fill="black")
-        return y + (bbox[3] - bbox[1]) + 20
+        draw.text(((width - w) // 2, y), text, font=font, fill="black")
+        return y + (bbox[3] - bbox[1]) + 10
 
     y = 30
-    y = draw_text(f"{table_prefix} {table_number}", y, use_large=True)
+    y = draw_text(f"{table_prefix} {table_number}", y)
 
     if wifi_qr or loyalty_qr:
         y = draw_text("Step 1", y)
@@ -144,7 +141,6 @@ if generate_clicked:
     temp_files = []
     font_file = download_google_font(font_choice)
     font = ImageFont.truetype(font_file, 28)
-    font.path = getattr(font_file, 'name', '')
 
     st.success("✅ PDF generated successfully!")
     st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
@@ -177,4 +173,4 @@ if generate_clicked:
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
 
- 
+    
