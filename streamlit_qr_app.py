@@ -5,7 +5,6 @@ import qrcode
 import uuid
 from io import BytesIO
 import requests
-import os
 from PyPDF2 import PdfMerger
 
 st.set_page_config(page_title="Table QR Generator", layout="centered")
@@ -18,7 +17,7 @@ with col1:
     table_count = st.number_input("Number of Tables", 1, 100, 1)
 
 with col2:
-    font_choice = st.selectbox("Font", ["DejaVuSans-Bold", "Arial", "LiberationSans-Regular"])
+    font_choice = st.selectbox("Font", ["Roboto", "Poppins", "Noto Sans"])
 
     include_wifi = st.checkbox("Include WiFi QR")
     if include_wifi:
@@ -30,6 +29,22 @@ with col2:
     include_loyalty = st.checkbox("Include Loyalty QR")
     if include_loyalty:
         loyalty_url = st.text_input("Loyalty URL", value="https://rewards.oolio.io/store")
+
+# ---- Download Google Fonts ----
+def download_google_font(font_name):
+    font_urls = {
+        "Roboto": "https://github.com/google/fonts/raw/main/ofl/roboto/Roboto-Regular.ttf",
+        "Poppins": "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf",
+        "Noto Sans": "https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf"
+    }
+    url = font_urls.get(font_name)
+    try:
+        r = requests.get(url)
+        if r.status_code == 200:
+            return BytesIO(r.content)
+    except:
+        pass
+    return "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 # ---- QR Code generators ----
 def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
@@ -52,19 +67,14 @@ def generate_menu_qr_with_logo(data, logo_url, size=300):
     qr_img.paste(logo, (x, y), mask=logo)
     return qr_img
 
-def get_font_path(name):
-    if "arial" in name.lower():
-        return "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-    elif "liberation" in name.lower():
-        return "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-    else:
-        return "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+def get_text_height(text, font):
+    bbox = font.getbbox(text)
+    return bbox[3] - bbox[1]
 
-def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font_path):
+def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
     width, height = 600, 800
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(font_path, 28)
 
     def draw_text(text, y):
         w = draw.textbbox((0, 0), text, font=font)[2]
@@ -103,11 +113,7 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font_path):
     img.paste(menu_qr, ((width - 200) // 2, y))
     return img
 
-def get_text_height(text, font):
-    bbox = font.getbbox(text)
-    return bbox[3] - bbox[1]
-
-# ---- UI Buttons Side-by-Side ----
+# ---- Generate ----
 col_generate, col_download = st.columns([1, 1])
 generate_clicked = col_generate.button("Generate PDF")
 
@@ -115,14 +121,15 @@ if generate_clicked:
     pdf_buf = BytesIO()
     merger = PdfMerger()
     temp_files = []
-    selected_font_path = get_font_path(font_choice)
+    font_file = download_google_font(font_choice)
+    font = ImageFont.truetype(font_file, 28)
 
     for table_number in range(1, table_count + 1):
         wifi = generate_basic_qr(wifi_data) if include_wifi else None
         loyalty = generate_basic_qr(loyalty_url) if include_loyalty else None
         menu_url = f"https://tags.oolio.io/{uuid.uuid4()}"
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
-        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, selected_font_path)
+        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font)
 
         if table_number == 1:
             img_buf = BytesIO()
