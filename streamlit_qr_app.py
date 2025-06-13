@@ -97,13 +97,17 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
             wifi_label = "WiFi"
             loyalty_label = "Loyalty"
 
-            wifi_label_w = draw.textbbox((0,0), wifi_label, font=font)[2] - draw.textbbox((0,0), wifi_label, font=font)[0]
-            loyalty_label_w = draw.textbbox((0,0), loyalty_label, font=font)[2] - draw.textbbox((0,0), loyalty_label, font=font)[0]
+            wifi_label_bbox = draw.textbbox((0, 0), wifi_label, font=font)
+            loyalty_label_bbox = draw.textbbox((0, 0), loyalty_label, font=font)
+
+            wifi_label_w = wifi_label_bbox[2] - wifi_label_bbox[0]
+            loyalty_label_w = loyalty_label_bbox[2] - loyalty_label_bbox[0]
+            label_h = max(wifi_label_bbox[3] - wifi_label_bbox[1], loyalty_label_bbox[3] - loyalty_label_bbox[1])
 
             draw.text((start_x + qr_size//2 - wifi_label_w//2, y), wifi_label, font=font, fill="black")
             draw.text((start_x + qr_size + spacing + qr_size//2 - loyalty_label_w//2, y), loyalty_label, font=font, fill="black")
 
-            y += get_text_height(wifi_label, font) + 5
+            y += label_h + 10
             img.paste(wifi_qr, (start_x, y))
             img.paste(loyalty_qr, (start_x + qr_size + spacing, y))
             y += qr_size + spacing
