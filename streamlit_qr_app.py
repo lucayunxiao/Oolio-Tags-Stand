@@ -72,12 +72,10 @@ def get_text_height(text, font):
     bbox = font.getbbox(text)
     return bbox[3] - bbox[1]
 
-def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix, font_file):
+def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix, font_title):
     width, height = 600, 800
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-
-    title_font = ImageFont.truetype(font_file, 36)
 
     def draw_text(text, y, font_override=None, spacing=10):
         current_font = font_override if font_override else font
@@ -87,7 +85,7 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
         return y + (bbox[3] - bbox[1]) + spacing
 
     y = 30
-    y = draw_text(f"{table_prefix} {table_number}", y, font_override=title_font, spacing=20)
+    y = draw_text(f"{table_prefix} {table_number}", y, font_override=font_title, spacing=20)
 
     if wifi_qr or loyalty_qr:
         y = draw_text("Step 1", y, spacing=15)
@@ -143,9 +141,16 @@ if generate_clicked:
     merger = PdfMerger()
     temp_files = []
     font_file = download_google_font(font_choice)
-    font = ImageFont.truetype(font_file, 28)
+
+    font_bytes = font_file.getvalue()
+    font_stream1 = BytesIO(font_bytes)
+    font_stream2 = BytesIO(font_bytes)
+
+    font = ImageFont.truetype(font_stream1, 28)
+    font_title = ImageFont.truetype(font_stream2, 36)
 
     st.success("✅ PDF generated successfully!")
+    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
     st.markdown(f"### Preview - {table_prefix} 1")
     preview_placeholder = st.empty()
 
@@ -154,7 +159,7 @@ if generate_clicked:
         loyalty = generate_basic_qr(loyalty_url) if include_loyalty else None
         menu_url = f"https://tags.oolio.io/{uuid.uuid4()}"
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
-        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font, table_prefix, font_file)
+        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font, table_prefix, font_title)
 
         if table_number == 1:
             img_buf = BytesIO()
@@ -175,4 +180,4 @@ if generate_clicked:
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
 
-    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
+    
