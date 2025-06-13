@@ -170,4 +170,6 @@ if generate_clicked:
     pdf_buf.seek(0)
 
     with col_download:
-        st.download_button("Download ALL - PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
+        st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
+
+    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
