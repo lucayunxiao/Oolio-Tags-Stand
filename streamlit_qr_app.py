@@ -77,17 +77,20 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
 
-    def draw_text(text, y):
-        bbox = draw.textbbox((0, 0), text, font=font)
+    title_font = ImageFont.truetype(font.path if hasattr(font, 'path') else font, 36)
+
+    def draw_text(text, y, font_override=None, spacing=10):
+        current_font = font_override if font_override else font
+        bbox = draw.textbbox((0, 0), text, font=current_font)
         w = bbox[2] - bbox[0]
-        draw.text(((width - w) // 2, y), text, font=font, fill="black")
-        return y + (bbox[3] - bbox[1]) + 10
+        draw.text(((width - w) // 2, y), text, font=current_font, fill="black")
+        return y + (bbox[3] - bbox[1]) + spacing
 
     y = 30
-    y = draw_text(f"{table_prefix} {table_number}", y)
+    y = draw_text(f"{table_prefix} {table_number}", y, font_override=title_font, spacing=20)
 
     if wifi_qr or loyalty_qr:
-        y = draw_text("Step 1", y)
+        y = draw_text("Step 1", y, spacing=15)
         qr_size = 200
         spacing = 30
 
@@ -125,7 +128,7 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
             img.paste(loyalty_qr, ((width - qr_size) // 2, y))
             y += qr_size + spacing
 
-        y = draw_text("Step 2", y)
+        y = draw_text("Step 2", y, spacing=10)
 
     y = draw_text("Scan for Menu", y)
     img.paste(menu_qr, ((width - 200) // 2, y))
@@ -141,9 +144,9 @@ if generate_clicked:
     temp_files = []
     font_file = download_google_font(font_choice)
     font = ImageFont.truetype(font_file, 28)
+    font.path = getattr(font_file, 'name', '')
 
     st.success("✅ PDF generated successfully!")
-    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
     st.markdown(f"### Preview - {table_prefix} 1")
     preview_placeholder = st.empty()
 
@@ -173,4 +176,4 @@ if generate_clicked:
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
 
-    
+    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
