@@ -14,6 +14,8 @@ col1, col2 = st.columns(2)
 
 with col1:
     table_count = st.number_input("Number of Tables", 1, 100, 1)
+
+with col2:
     include_wifi = st.checkbox("Include WiFi QR")
     if include_wifi:
         ssid = st.text_input("WiFi SSID", value="My_Wifi")
@@ -21,10 +23,10 @@ with col1:
         encryption = st.selectbox("Encryption Type", ["WPA", "WEP"])
         wifi_data = f"WIFI:T:{encryption};S:{ssid};P:{password};;"
 
-with col2:
     include_loyalty = st.checkbox("Include Loyalty QR")
     if include_loyalty:
         loyalty_url = st.text_input("Loyalty URL", value="https://rewards.oolio.io/store")
+
 
 # ---- QR Code generators ----
 def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
@@ -88,12 +90,16 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr):
     img.paste(menu_qr, (200, y))
     return img
 
-# ---- Generate ----
-if st.button("Generate PDF"):
-    pdf_buf = BytesIO()
+# ---- UI Buttons Side-by-Side ----
+col_generate, col_download = st.columns([1, 1])
+
+generate_clicked = col_generate.button("Generate PDF")
+
+if generate_clicked:
     from PyPDF2 import PdfMerger
     import os
 
+    pdf_buf = BytesIO()
     merger = PdfMerger()
     temp_files = []
 
@@ -104,22 +110,24 @@ if st.button("Generate PDF"):
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
         page = draw_centered_page(table_number, wifi, loyalty, menu_qr)
 
-        img_buf = BytesIO()
-        page.save(img_buf, format="PNG")
-        img_buf.seek(0)
-
+        # Preview image for Table 1
         if table_number == 1:
-            st.image(img_buf, caption=f"Preview: Table {table_number}", use_column_width=True)
+            img_buf = BytesIO()
+            page.save(img_buf, format="PNG")
+            img_buf.seek(0)
+            st.image(img_buf, caption=f"Preview: Table {table_number}", use_container_width=True)
 
+        # Add to PDF
         pdf_buf_single = BytesIO()
         page.save(pdf_buf_single, format="PDF")
         pdf_buf_single.seek(0)
         temp_files.append(pdf_buf_single)
         merger.append(pdf_buf_single)
 
-
     merger.write(pdf_buf)
     pdf_buf.seek(0)
 
-    st.success("PDF generated successfully!")
-    st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
+    st.success("✅ PDF generated successfully!")
+
+    with col_download:
+        st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
