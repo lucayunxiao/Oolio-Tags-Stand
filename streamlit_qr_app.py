@@ -42,10 +42,11 @@ def download_google_font(font_name):
     try:
         r = requests.get(url)
         if r.status_code == 200:
-            return BytesIO(r.content)
+            return r.content
     except:
         pass
-    return "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    with open("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "rb") as f:
+        return f.read()
 
 # ---- QR Code generators ----
 def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
@@ -140,9 +141,7 @@ if generate_clicked:
     pdf_buf = BytesIO()
     merger = PdfMerger()
     temp_files = []
-    font_file = download_google_font(font_choice)
-
-    font_bytes = font_file.getvalue()
+    font_bytes = download_google_font(font_choice)
     font_stream1 = BytesIO(font_bytes)
     font_stream2 = BytesIO(font_bytes)
 
