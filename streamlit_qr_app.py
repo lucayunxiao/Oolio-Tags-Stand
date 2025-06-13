@@ -142,6 +142,8 @@ if generate_clicked:
     font_file = download_google_font(font_choice)
     font = ImageFont.truetype(font_file, 28)
 
+    st.success("✅ PDF generated successfully!")
+    st.markdown(f"### Preview - {table_prefix} 1")
     preview_placeholder = st.empty()
 
     for table_number in range(1, table_count + 1):
@@ -156,7 +158,6 @@ if generate_clicked:
             page.save(img_buf, format="PNG")
             img_buf.seek(0)
             with preview_placeholder:
-                st.markdown(f"### Preview - {table_prefix} 1")
                 st.image(img_buf, use_container_width=True)
 
         pdf_buf_single = BytesIO()
@@ -170,5 +171,3 @@ if generate_clicked:
 
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
-
-    st.success("✅ PDF generated successfully!")
