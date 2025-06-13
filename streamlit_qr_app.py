@@ -143,6 +143,7 @@ if generate_clicked:
     font = ImageFont.truetype(font_file, 28)
 
     st.success("✅ PDF generated successfully!")
+    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
     st.markdown(f"### Preview - {table_prefix} 1")
     preview_placeholder = st.empty()
 
@@ -172,4 +173,4 @@ if generate_clicked:
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
 
-    st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
+    
