@@ -53,12 +53,12 @@ def generate_menu_qr_with_logo(data, logo_url, size=300):
     return qr_img
 
 def get_font_path(name):
-    import matplotlib.font_manager as fm
-    font_list = fm.findSystemFonts(fontpaths=None, fontext='ttf')
-    for f in font_list:
-        if name.lower() in os.path.basename(f).lower():
-            return f
-    return "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    if "arial" in name.lower():
+        return "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    elif "liberation" in name.lower():
+        return "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    else:
+        return "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font_path):
     width, height = 600, 800
