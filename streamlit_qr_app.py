@@ -15,6 +15,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     table_count = st.number_input("Number of Tables", 1, 100, 1)
+    table_prefix = st.text_input("Table Prefix", value="Table")
 
 with col2:
     font_choice = st.selectbox("Font", ["Roboto", "Poppins", "Noto Sans"])
@@ -71,7 +72,7 @@ def get_text_height(text, font):
     bbox = font.getbbox(text)
     return bbox[3] - bbox[1]
 
-def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
+def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix):
     width, height = 600, 800
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
@@ -83,7 +84,7 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font):
         return y + (bbox[3] - bbox[1]) + 10
 
     y = 30
-    y = draw_text(f"Table {table_number}", y)
+    y = draw_text(f"{table_prefix} {table_number}", y)
 
     if wifi_qr or loyalty_qr:
         y = draw_text("Step 1", y)
@@ -141,18 +142,22 @@ if generate_clicked:
     font_file = download_google_font(font_choice)
     font = ImageFont.truetype(font_file, 28)
 
+    preview_placeholder = st.empty()
+
     for table_number in range(1, table_count + 1):
         wifi = generate_basic_qr(wifi_data) if include_wifi else None
         loyalty = generate_basic_qr(loyalty_url) if include_loyalty else None
         menu_url = f"https://tags.oolio.io/{uuid.uuid4()}"
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
-        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font)
+        page = draw_centered_page(table_number, wifi, loyalty, menu_qr, font, table_prefix)
 
         if table_number == 1:
             img_buf = BytesIO()
             page.save(img_buf, format="PNG")
             img_buf.seek(0)
-            st.image(img_buf, caption=f"Preview: Table {table_number}", use_container_width=True)
+            with preview_placeholder:
+                st.markdown(f"### Preview - {table_prefix} 1")
+                st.image(img_buf, use_container_width=True)
 
         pdf_buf_single = BytesIO()
         page.save(pdf_buf_single, format="PDF")
@@ -163,6 +168,7 @@ if generate_clicked:
     merger.write(pdf_buf)
     pdf_buf.seek(0)
 
-    st.success("✅ PDF generated successfully!")
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
+
+    st.success("✅ PDF generated successfully!")
