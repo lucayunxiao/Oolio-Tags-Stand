@@ -16,8 +16,8 @@ with col1:
     table_count = st.number_input("Number of Tables", 1, 100, 1)
     include_wifi = st.checkbox("Include WiFi QR")
     if include_wifi:
-        ssid = st.text_input("WiFi SSID", value="Foodcraft")
-        password = st.text_input("WiFi Password", value="foodcraft")
+        ssid = st.text_input("WiFi SSID", value="My_Wifi")
+        password = st.text_input("WiFi Password", value="My_Wifi_Password")
         encryption = st.selectbox("Encryption Type", ["WPA", "WEP"])
         wifi_data = f"WIFI:T:{encryption};S:{ssid};P:{password};;"
 
@@ -104,11 +104,19 @@ if st.button("Generate PDF"):
         menu_qr = generate_menu_qr_with_logo(menu_url, "https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Logo-removebg.png", 200)
         page = draw_centered_page(table_number, wifi, loyalty, menu_qr)
 
-        buf = BytesIO()
-        page.save(buf, format="PDF")
-        buf.seek(0)
-        temp_files.append(buf)
-        merger.append(buf)
+        img_buf = BytesIO()
+        page.save(img_buf, format="PNG")
+        img_buf.seek(0)
+
+        if table_number == 1:
+            st.image(img_buf, caption=f"Preview: Table {table_number}", use_column_width=True)
+
+        pdf_buf_single = BytesIO()
+        page.save(pdf_buf_single, format="PDF")
+        pdf_buf_single.seek(0)
+        temp_files.append(pdf_buf_single)
+        merger.append(pdf_buf_single)
+
 
     merger.write(pdf_buf)
     pdf_buf.seek(0)
