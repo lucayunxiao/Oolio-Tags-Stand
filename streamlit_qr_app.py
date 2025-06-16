@@ -128,8 +128,14 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
             y += qr_size + spacing
 
         y = draw_text("Step 2", y, spacing=10)
+        y = draw_text("Scan for Menu", y)
+    else:
+        # 居中 Scan for Menu 和菜单二维码
+        label_h = get_text_height("Scan for Menu", font)
+        total_qr_height = label_h + 200
+        y = (height - total_qr_height) // 2
+        y = draw_text("Scan for Menu", y)
 
-    y = draw_text("Scan for Menu", y)
     img.paste(menu_qr, ((width - 200) // 2, y))
     return img
 
@@ -178,5 +184,3 @@ if generate_clicked:
 
     with col_download:
         st.download_button("Download PDF", pdf_buf, file_name="All_Tables_Menu.pdf", mime="application/pdf")
-
-    
