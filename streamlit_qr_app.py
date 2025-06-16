@@ -10,7 +10,7 @@ from PyPDF2 import PdfMerger
 st.set_page_config(page_title="Table QR Generator", layout="centered")
 st.title("🍽️ Table QR Code Generator")
 
-# ---- Inputs ----
+# ---- UI Inputs ----
 col1, col2 = st.columns(2)
 
 with col1:
@@ -48,7 +48,7 @@ def download_google_font(font_name):
     with open("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "rb") as f:
         return f.read()
 
-# ---- QR Code generators ----
+# ---- QR Code Generators ----
 def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
     qr.add_data(data)
@@ -73,6 +73,7 @@ def get_text_height(text, font):
     bbox = font.getbbox(text)
     return bbox[3] - bbox[1]
 
+# ---- Page Drawing ----
 def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix, font_title):
     width, height = 600, 800
     img = Image.new("RGB", (width, height), "white")
@@ -128,18 +129,18 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
             y += qr_size + spacing
 
         y = draw_text("Step 2", y, spacing=10)
-        y = draw_text("Scan for Menu", y)
+        y = draw_text("Scan for Menu", y, spacing=20)
     else:
-        # 居中 Scan for Menu 和菜单二维码
+        # Vertically center menu label and QR code if no WiFi or Loyalty QR
         label_h = get_text_height("Scan for Menu", font)
-        total_qr_height = label_h + 200
+        total_qr_height = label_h + 200 + 20
         y = (height - total_qr_height) // 2
-        y = draw_text("Scan for Menu", y)
+        y = draw_text("Scan for Menu", y, spacing=20)
 
     img.paste(menu_qr, ((width - 200) // 2, y))
     return img
 
-# ---- Generate ----
+# ---- PDF Generation ----
 col_generate, col_download = st.columns([1, 1])
 generate_clicked = col_generate.button("Generate PDF")
 
