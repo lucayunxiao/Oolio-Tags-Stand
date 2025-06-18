@@ -156,6 +156,7 @@ if generate_clicked:
     font_title = ImageFont.truetype(font_stream2, 36)
 
     st.success("✅ PDF generated successfully!")
+    st.error("⚠️ For each menu QR - Activate them first follw the guide below!!!")
     st.info("📘 [How to activate QR codes in Oolio](https://help.oolio.com/tags-set-up-qr-codes-for-your-tables-oolio-help-center)")
     st.markdown(f"### Preview - {table_prefix} 1")
     preview_placeholder = st.empty()
