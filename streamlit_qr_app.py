@@ -49,7 +49,7 @@ def download_google_font(font_name):
         return f.read()
 
 # ---- QR Code Generators ----
-def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
+def generate_basic_qr(data, fill="#ffffff", back="#4080e8", size=200):
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
     qr.add_data(data)
     qr.make(fit=True)
@@ -57,7 +57,7 @@ def generate_basic_qr(data, fill="#000000", back="#ffffff", size=200):
     return img.resize((size, size))
 
 def generate_menu_qr_with_logo(data, logo_url, size=300):
-    qr_img = generate_basic_qr(data, fill="white", back="#4080e8", size=size)
+    qr_img = generate_basic_qr(data, fill="#ffffff", back="#4080e8", size=size)
     response = requests.get(logo_url)
     logo = Image.open(BytesIO(response.content)).convert("RGBA")
     logo_size = size // 4
@@ -76,14 +76,15 @@ def get_text_height(text, font):
 # ---- Page Drawing ----
 def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_prefix, font_title):
     width, height = 600, 800
-    img = Image.new("RGB", (width, height), "white")
-    draw = ImageDraw.Draw(img)
+    response = requests.get("https://ooliovideoshb.s3.ap-southeast-2.amazonaws.com/OPOS+-+Back+Office/Oolio_Gradient_3_4.png")
+    bg = Image.open(BytesIO(response.content)).resize((width, height)).convert("RGB")
+    draw = ImageDraw.Draw(bg)
 
     def draw_text(text, y, font_override=None, spacing=10):
         current_font = font_override if font_override else font
         bbox = draw.textbbox((0, 0), text, font=current_font)
         w = bbox[2] - bbox[0]
-        draw.text(((width - w) // 2, y), text, font=current_font, fill="black")
+        draw.text(((width - w) // 2, y), text, font=current_font, fill="white")
         return y + (bbox[3] - bbox[1]) + spacing
 
     y = 30
@@ -108,37 +109,36 @@ def draw_centered_page(table_number, wifi_qr, loyalty_qr, menu_qr, font, table_p
             loyalty_label_w = loyalty_label_bbox[2] - loyalty_label_bbox[0]
             label_h = max(wifi_label_bbox[3] - wifi_label_bbox[1], loyalty_label_bbox[3] - loyalty_label_bbox[1])
 
-            draw.text((start_x + qr_size//2 - wifi_label_w//2, y), wifi_label, font=font, fill="black")
-            draw.text((start_x + qr_size + spacing + qr_size//2 - loyalty_label_w//2, y), loyalty_label, font=font, fill="black")
+            draw.text((start_x + qr_size//2 - wifi_label_w//2, y), wifi_label, font=font, fill="white")
+            draw.text((start_x + qr_size + spacing + qr_size//2 - loyalty_label_w//2, y), loyalty_label, font=font, fill="white")
 
             y += label_h + 10
-            img.paste(wifi_qr, (start_x, y))
-            img.paste(loyalty_qr, (start_x + qr_size + spacing, y))
+            bg.paste(wifi_qr, (start_x, y))
+            bg.paste(loyalty_qr, (start_x + qr_size + spacing, y))
             y += qr_size + spacing
 
         elif wifi_qr:
-            draw.text(((width - 60) // 2, y), "WiFi", font=font, fill="black")
+            draw.text(((width - 60) // 2, y), "WiFi", font=font, fill="white")
             y += 35
-            img.paste(wifi_qr, ((width - qr_size) // 2, y))
+            bg.paste(wifi_qr, ((width - qr_size) // 2, y))
             y += qr_size + spacing
 
         elif loyalty_qr:
-            draw.text(((width - 100) // 2, y), "Loyalty", font=font, fill="black")
+            draw.text(((width - 100) // 2, y), "Loyalty", font=font, fill="white")
             y += 35
-            img.paste(loyalty_qr, ((width - qr_size) // 2, y))
+            bg.paste(loyalty_qr, ((width - qr_size) // 2, y))
             y += qr_size + spacing
 
         y = draw_text("Step 2", y, spacing=10)
         y = draw_text("Scan for Menu", y, spacing=20)
     else:
-        # Vertically center menu label and QR code if no WiFi or Loyalty QR
         label_h = get_text_height("Scan for Menu", font)
         total_qr_height = label_h + 200 + 20
         y = (height - total_qr_height) // 2
         y = draw_text("Scan for Menu", y, spacing=20)
 
-    img.paste(menu_qr, ((width - 200) // 2, y))
-    return img
+    bg.paste(menu_qr, ((width - 200) // 2, y))
+    return bg
 
 # ---- PDF Generation ----
 col_generate, col_download = st.columns([1, 1])
